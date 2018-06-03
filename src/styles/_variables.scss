@@ -1,0 +1,27 @@
+// color
+$color-border-base: lightgray;
+$color-bg-base: #fff;
+$color-outline-base: lightblue;
+
+$color-primary: lightblue;
+
+$color-border-btn: $color-border-base;
+$color-border-input: $color-border-base;
+$color-border-input-focus: $color-primary;
+$color-border-textarea: $color-border-base;
+$color-border-textarea-focus: $color-primary;
+
+$color-bg-btn: $color-bg-base;
+$color-outline-input: $color-outline-base;
+
+// size
+$border-radius-base: 5px;
+$padding-base: 4px;
+
+$border-radius-button: $border-radius-base;
+$border-radius-input: $border-radius-base;
+$border-radius-textarea: $border-radius-base;
+
+$padding-button: $padding-base $padding-base * 2;
+$padding-input: $padding-base $padding-base * 2;
+$padding-textarea: $padding-base $padding-base * 2;

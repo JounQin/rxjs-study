@@ -1,0 +1,29 @@
+body {
+  padding: 10px;
+}
+
+.app {
+  &__header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+
+    .ant-input-search {
+      flex: 1;
+    }
+
+    .ant-input {
+      min-height: unset;
+    }
+  }
+
+  &__add-post {
+    display: flex;
+    flex: 1;
+    justify-content: flex-end;
+  }
+
+  &__list .ant-list-item-meta {
+    margin-bottom: 0;
+  }
+}

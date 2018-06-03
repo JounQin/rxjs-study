@@ -1,0 +1,23 @@
+{
+  "extends": [
+    "tslint:recommended",
+    "tslint-config-prettier",
+    "tslint-plugin-prettier"
+  ],
+  "rules": {
+    "import-blacklist": false,
+    "interface-name": false,
+    "member-access": false,
+    "ordered-imports": [
+      true,
+      {
+        "named-imports-order": "lowercase-last"
+      }
+    ],
+    "prettier": true,
+    "object-literal-sort-keys": false
+  },
+  "linterOptions": {
+    "exclude": ["node_modules/**"]
+  }
+}
