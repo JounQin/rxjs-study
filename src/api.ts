@@ -8,7 +8,7 @@ export interface Post {
 }
 
 const SERVER_ENDPOINT =
-  process.env.SERVER_ENDPOINT || 'http://jsonplaceholder.typicode.com/'
+  process.env.SERVER_ENDPOINT || 'https://jsonplaceholder.typicode.com/'
 
 class Api {
   getPosts() {

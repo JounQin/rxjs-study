@@ -2,10 +2,6 @@
 # yarn lockfile v1
 
 
-"@fortawesome/fontawesome-free@^5.1.0-11":
-  version "5.1.0-11"
-  resolved "https://registry.yarnpkg.com/@fortawesome/fontawesome-free/-/fontawesome-free-5.1.0-11.tgz#690ea6ecc169142fdb63622d44c841f88fadc936"
-
 "@samverschueren/stream-to-observable@^0.3.0":
   version "0.3.0"
   resolved "https://registry.yarnpkg.com/@samverschueren/stream-to-observable/-/stream-to-observable-0.3.0.tgz#ecdf48d532c58ea477acfcab80348424f8d0662f"

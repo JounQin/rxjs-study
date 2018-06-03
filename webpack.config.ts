@@ -18,7 +18,12 @@ const hashType = isProd ? 'contenthash' : 'hash'
 
 const cssLoaders = [
   isProd ? MiniCssExtractPlugin.loader : 'style-loader',
-  'css-loader',
+  {
+    loader: 'css-loader',
+    options: {
+      minimize: isProd,
+    },
+  },
   'postcss-loader',
 ]
 
@@ -87,6 +92,21 @@ const config: Configuration = {
       filename: `[name].[${hashType}].css`,
     }),
   ],
+  optimization: {
+    runtimeChunk: {
+      name: 'manifest',
+    },
+    splitChunks: {
+      name: 'vendors',
+      chunks: 'initial',
+      cacheGroups: {
+        vendors: {
+          test: ({ context, request }) =>
+            /node_modules/.test(context) && !/.css$/.test(request),
+        },
+      },
+    },
+  },
 }
 
 export default config
