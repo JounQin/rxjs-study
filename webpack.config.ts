@@ -29,6 +29,7 @@ const cssLoaders = [
 
 const config: Configuration = {
   mode: NODE_ENV,
+  devtool: isProd ? false : 'cheap-module-source-map',
   entry: {
     app: resolve('src/index.tsx'),
   },

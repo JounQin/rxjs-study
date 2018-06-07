@@ -1,190 +1,97 @@
-import { Button, Form, Input, List, Modal } from 'antd'
-import { FormComponentProps } from 'antd/lib/form'
-import React, {
-  ChangeEvent,
-  FormEvent,
-  MouseEvent,
-  PureComponent,
-  Ref,
-} from 'react'
-import { Subject, of } from 'rxjs'
+import { Button, Input, List, Modal } from 'antd'
+import React, { ChangeEvent, Ref } from 'react'
+import { BehaviorSubject, Subject, combineLatest, of } from 'rxjs'
 import {
   catchError,
-  combineLatest,
   debounceTime,
   filter,
+  map,
   startWith,
   switchMap,
+  tap,
 } from 'rxjs/operators'
 
 import api, { Post } from 'api'
+import { Subscribe } from 'components'
 import { buildBem } from 'utils'
+
+import { CreatePostModal } from './CreatePostModal'
 
 import 'styles/app'
 
 const bem = buildBem('app')
 
-interface AppState {
-  search: string
-  posts: Post[]
-  isModalOpen: boolean
-}
+export default class App extends React.PureComponent {
+  formRef: Ref<typeof CreatePostModal>
 
-const PostCreateForm = Form.create()(
-  class extends PureComponent<
-    FormComponentProps & {
-      visible: boolean
-      onCancel: (e: MouseEvent<any>) => void
-      onCreate: (post: Partial<Post>) => void
-    }
-  > {
-    addingPost = {} as {
-      title: string
-      body: string
-    }
+  search$ = new BehaviorSubject('')
+  visible$ = new BehaviorSubject(false)
+  loading$ = new BehaviorSubject(false)
 
-    onPostTitleChange = (e: ChangeEvent<HTMLInputElement>) => {
-      this.addingPost.title = e.target.value
-    }
-
-    onPostBodyChange = (e: ChangeEvent<HTMLInputElement>) => {
-      this.addingPost.body = e.target.value
-    }
-
-    onCreate = (e: FormEvent<HTMLFormElement>) => {
-      e.preventDefault()
-      this.props.onCreate(this.addingPost)
-    }
-
-    render() {
-      const {
-        visible,
-        onCancel,
-        form: { getFieldDecorator },
-      } = this.props
-      return (
-        <Modal
-          visible={visible}
-          title="Create a new Post"
-          okText="Create"
-          onCancel={onCancel}
-          onOk={this.onCreate}
-        >
-          <Form>
-            <Form.Item label="Title">
-              {getFieldDecorator('title', {
-                rules: [
-                  {
-                    required: true,
-                    message: 'Please input the title of post!',
-                  },
-                ],
-              })(<Input onChange={this.onPostTitleChange} />)}
-            </Form.Item>
-            <Form.Item label="Description">
-              {getFieldDecorator('description')(
-                <Input type="textarea" onChange={this.onPostBodyChange} />,
-              )}
-            </Form.Item>
-          </Form>
-        </Modal>
-      )
-    }
-  },
-)
-
-// tslint:disable-next-line:max-classes-per-file
-export default class App extends React.PureComponent<{}, AppState> {
-  state = {
-    search: '',
-    posts: [],
-    isModalOpen: false,
-  } as AppState
-
-  formRef: Ref<typeof PostCreateForm>
-  search$ = new Subject<string>()
   addingPost$ = new Subject<Partial<Post>>()
+  addedPost$ = this.addingPost$.pipe(
+    filter(post => !!(post.title && post.body)),
+    debounceTime(500),
+    tap(() => this.loading$.next(true)),
+    switchMap(post => api.createPost(post)),
+    catchError(() => of(null)),
+    tap(() => this.loading$.next(false)),
+    startWith(null),
+  )
+
   deletingPostId$ = new Subject<string>()
+  deletedPostId$ = this.deletingPostId$.pipe(
+    tap(() => this.loading$.next(true)),
+    switchMap(id => api.deletePost(id)),
+    catchError(() => of(null)),
+    tap(() => this.loading$.next(false)),
+    startWith(null),
+  )
 
-  onChange = (e: ChangeEvent<HTMLInputElement>) => {
-    this.search$.next(e.target.value)
-  }
+  posts$ = combineLatest(
+    api.getPosts(),
+    this.addedPost$,
+    this.deletedPostId$,
+  ).pipe(
+    tap(([posts, post, id]) => {
+      if (post && !posts.includes(post)) {
+        posts.splice(0, 0, post)
+        this.visible$.next(false)
+        return
+      }
 
-  createPost = () => {
-    this.setState({
-      isModalOpen: true,
-    })
-  }
+      if (!id) {
+        return
+      }
+
+      const index = posts.findIndex(p => p.id === id)
+
+      if (index + 1) {
+        posts.splice(index, 1)
+      }
+    }),
+    map(([posts]) => posts),
+  )
+
+  onChange = (e: ChangeEvent<HTMLInputElement>) =>
+    this.search$.next(e.target.value.trim())
+
+  createPost = () => this.visible$.next(true)
 
   deletePost(id: string) {
     Modal.confirm({
       title: 'Delete',
       content: 'Do you confirm to delete this post?',
-      onOk: () => {
-        this.deletingPostId$.next(id)
-      },
+      onOk: () => this.deletingPostId$.next(id),
     })
   }
 
-  cancel = () => {
-    this.setState({
-      isModalOpen: false,
-    })
-  }
+  cancel = () => this.visible$.next(false)
 
-  confirm = (addingPost: Partial<Post>) => {
-    this.addingPost$.next(addingPost)
-  }
+  confirm = (addingPost: Partial<Post>) => this.addingPost$.next(addingPost)
 
-  saveFormRef = (formRef: Ref<typeof PostCreateForm>) => {
+  saveFormRef = (formRef: Ref<typeof CreatePostModal>) => {
     this.formRef = formRef
-  }
-
-  componentDidMount() {
-    api
-      .getPosts()
-      .pipe(combineLatest(this.search$.pipe(startWith(this.state.search))))
-      .subscribe(([posts, search]) => {
-        search = search && search.trim()
-        this.setState({
-          search,
-          posts: search
-            ? posts.filter(post => post.title.includes(search))
-            : posts,
-        })
-      })
-
-    this.addingPost$
-      .pipe(
-        filter(post => !!(post.title && post.body)),
-        debounceTime(500),
-        switchMap(post => api.createPost(post)),
-        catchError(() => of(null)),
-      )
-      .subscribe(post => {
-        if (!post) {
-          return
-        }
-        this.setState({
-          isModalOpen: false,
-          posts: [post, ...this.state.posts],
-        })
-      })
-
-    this.deletingPostId$
-      .pipe(
-        switchMap(id => api.deletePost(id)),
-        catchError(() => of(null)),
-      )
-      .subscribe(id => {
-        if (!id) {
-          return
-        }
-
-        this.setState({
-          posts: this.state.posts.filter(post => post.id !== id),
-        })
-      })
   }
 
   render() {
@@ -196,25 +103,48 @@ export default class App extends React.PureComponent<{}, AppState> {
             <Button onClick={this.createPost}>Add Post</Button>
           </div>
         </div>
-        <List
-          className={bem.element('list')}
-          bordered
-          dataSource={this.state.posts}
-          rowKey="id"
-          renderItem={(post: Post) => (
-            <List.Item
-              actions={[<a onClick={() => this.deletePost(post.id)}>delete</a>]}
-            >
-              <List.Item.Meta title={post.title} description={post.body} />
-            </List.Item>
+        <Subscribe>
+          {combineLatest(this.posts$, this.search$, this.loading$).pipe(
+            map(([posts, search, loading]) => {
+              posts = search
+                ? posts.filter(post => post.title.includes(search))
+                : posts
+              return (
+                <List
+                  className={bem.element('list')}
+                  bordered
+                  dataSource={posts}
+                  loading={loading}
+                  rowKey="id"
+                  renderItem={(post: Post) => (
+                    <List.Item
+                      actions={[
+                        <a onClick={() => this.deletePost(post.id)}>delete</a>,
+                      ]}
+                    >
+                      <List.Item.Meta
+                        title={post.title}
+                        description={post.body}
+                      />
+                    </List.Item>
+                  )}
+                />
+              )
+            }),
           )}
-        />
-        <PostCreateForm
-          wrappedComponentRef={this.saveFormRef}
-          visible={this.state.isModalOpen}
-          onCancel={this.cancel}
-          onCreate={this.confirm}
-        />
+        </Subscribe>
+        <Subscribe>
+          {this.visible$.pipe(
+            map(visible => (
+              <CreatePostModal
+                wrappedComponentRef={this.saveFormRef}
+                visible={visible}
+                onCancel={this.cancel}
+                onCreate={this.confirm}
+              />
+            )),
+          )}
+        </Subscribe>
       </>
     )
   }

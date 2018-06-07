@@ -1,3 +1,4 @@
+import { from } from 'rxjs'
 import { ajax } from 'rxjs/ajax'
 import { map } from 'rxjs/operators'
 
@@ -12,7 +13,7 @@ const SERVER_ENDPOINT =
 
 class Api {
   getPosts() {
-    return ajax.getJSON<Post[]>(SERVER_ENDPOINT + 'posts')
+    return from(ajax.getJSON<Post[]>(SERVER_ENDPOINT + 'posts').toPromise())
   }
 
   createPost(post: Partial<Post>) {
@@ -24,7 +25,13 @@ class Api {
   }
 
   deletePost(id: string) {
-    return ajax.delete(SERVER_ENDPOINT + 'posts/' + id).pipe(map(() => id))
+    return from(
+      ajax
+        .delete(SERVER_ENDPOINT + 'posts/' + id)
+        .pipe(map(() => id))
+        .toPromise()
+        .catch(() => null),
+    )
   }
 }
 
