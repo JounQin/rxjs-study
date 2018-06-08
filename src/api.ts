@@ -3,7 +3,7 @@ import { ajax } from 'rxjs/ajax'
 import { catchError, map } from 'rxjs/operators'
 
 export interface Post {
-  id: string
+  id: number
   title: string
   body: string
 }
@@ -27,7 +27,7 @@ class Api {
       )
   }
 
-  deletePost(id: string) {
+  deletePost(id: number) {
     return ajax.delete(SERVER_ENDPOINT + 'posts/' + id).pipe(
       map(() => id),
       catchError(() => of(null)),

@@ -1,6 +1,12 @@
 import { Button, Input, List, Modal } from 'antd'
 import React, { ChangeEvent, Ref } from 'react'
-import { BehaviorSubject, Observable, Subject, combineLatest } from 'rxjs'
+import {
+  BehaviorSubject,
+  Observable,
+  Subject,
+  combineLatest,
+  merge,
+} from 'rxjs'
 import {
   debounceTime,
   filter,
@@ -31,14 +37,17 @@ export default class App extends React.PureComponent {
   addedPost$: Observable<Post> = this.addingPost$.pipe(
     filter(post => !!(post.title && post.body)),
     debounceTime(500),
-    tap(() => this.loading$.next(true)),
+    tap(() => {
+      this.loading$.next(true)
+      this.visible$.next(false)
+    }),
     switchMap(post => api.createPost(post)),
     tap(() => this.loading$.next(false)),
     startWith(null),
   )
 
-  deletingPostId$ = new Subject<string>()
-  deletedPostId$: Observable<string> = this.deletingPostId$.pipe(
+  deletingPostId$ = new Subject<number>()
+  deletedPostId$: Observable<number> = this.deletingPostId$.pipe(
     tap(() => this.loading$.next(true)),
     switchMap(id => api.deletePost(id)),
     tap(() => this.loading$.next(false)),
@@ -47,21 +56,19 @@ export default class App extends React.PureComponent {
 
   posts$ = combineLatest(
     api.getPosts(),
-    this.addedPost$,
-    this.deletedPostId$,
+    merge(this.addedPost$, this.deletedPostId$),
   ).pipe(
-    tap(([posts, post, id]) => {
-      if (post && !posts.includes(post)) {
-        posts.splice(0, 0, post)
-        this.visible$.next(false)
+    tap(([posts, postOrId]) => {
+      if (!postOrId) {
         return
       }
 
-      if (!id) {
+      if (typeof postOrId !== 'number') {
+        posts.splice(0, 0, postOrId)
         return
       }
 
-      const index = posts.findIndex(p => p.id === id)
+      const index = posts.findIndex(post => post.id === postOrId)
 
       if (index + 1) {
         posts.splice(index, 1)
@@ -75,7 +82,7 @@ export default class App extends React.PureComponent {
 
   createPost = () => this.visible$.next(true)
 
-  deletePost(id: string) {
+  deletePost(id: number) {
     Modal.confirm({
       title: 'Delete',
       content: 'Do you confirm to delete this post?',
