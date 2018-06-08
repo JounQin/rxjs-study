@@ -28,7 +28,7 @@ export default class App extends React.PureComponent {
   visible$ = new BehaviorSubject(false)
   loading$ = new BehaviorSubject(false)
 
-  addingPost$ = new Subject<Partial<Post>>()
+  addingPost$ = new Subject<Pick<Post, 'body' | 'title'>>()
   addedPost$ = this.addingPost$.pipe(
     filter(post => !!(post.title && post.body)),
     debounceTime(500),
@@ -86,10 +86,6 @@ export default class App extends React.PureComponent {
     })
   }
 
-  cancel = () => this.visible$.next(false)
-
-  confirm = (addingPost: Partial<Post>) => this.addingPost$.next(addingPost)
-
   saveFormRef = (formRef: Ref<typeof CreatePostModal>) => {
     this.formRef = formRef
   }
@@ -133,18 +129,11 @@ export default class App extends React.PureComponent {
             }),
           )}
         </Subscribe>
-        <Subscribe>
-          {this.visible$.pipe(
-            map(visible => (
-              <CreatePostModal
-                wrappedComponentRef={this.saveFormRef}
-                visible={visible}
-                onCancel={this.cancel}
-                onCreate={this.confirm}
-              />
-            )),
-          )}
-        </Subscribe>
+        <CreatePostModal
+          wrappedComponentRef={this.saveFormRef}
+          addingPost$={this.addingPost$}
+          visible$={this.visible$}
+        />
       </>
     )
   }

@@ -16,10 +16,6 @@ export class Subscribe extends PureComponent<SubscribeProps, SubscribeState> {
 
   subscription: Subscription
 
-  constructor(props: SubscribeProps) {
-    super(props)
-  }
-
   componentDidMount() {
     this.setupSubscription()
   }
