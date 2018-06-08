@@ -1,6 +1,6 @@
-import { from } from 'rxjs'
+import { Observable, of } from 'rxjs'
 import { ajax } from 'rxjs/ajax'
-import { map } from 'rxjs/operators'
+import { catchError, map } from 'rxjs/operators'
 
 export interface Post {
   id: string
@@ -13,24 +13,24 @@ const SERVER_ENDPOINT =
 
 class Api {
   getPosts() {
-    return from(ajax.getJSON<Post[]>(SERVER_ENDPOINT + 'posts').toPromise())
+    return ajax.getJSON<Post[]>(SERVER_ENDPOINT + 'posts')
   }
 
-  createPost(post: Partial<Post>) {
+  createPost(post: Pick<Post, 'body' | 'title'>): Observable<Post> {
     return ajax
       .post(SERVER_ENDPOINT + 'posts', post, {
         'Content-Type': 'application/json',
       })
-      .pipe(map(({ response }) => response))
+      .pipe(
+        map(({ response }) => response),
+        catchError(() => of(null)),
+      )
   }
 
   deletePost(id: string) {
-    return from(
-      ajax
-        .delete(SERVER_ENDPOINT + 'posts/' + id)
-        .pipe(map(() => id))
-        .toPromise()
-        .catch(() => null),
+    return ajax.delete(SERVER_ENDPOINT + 'posts/' + id).pipe(
+      map(() => id),
+      catchError(() => of(null)),
     )
   }
 }

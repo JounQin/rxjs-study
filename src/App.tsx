@@ -1,8 +1,7 @@
 import { Button, Input, List, Modal } from 'antd'
 import React, { ChangeEvent, Ref } from 'react'
-import { BehaviorSubject, Subject, combineLatest, of } from 'rxjs'
+import { BehaviorSubject, Observable, Subject, combineLatest } from 'rxjs'
 import {
-  catchError,
   debounceTime,
   filter,
   map,
@@ -29,21 +28,19 @@ export default class App extends React.PureComponent {
   loading$ = new BehaviorSubject(false)
 
   addingPost$ = new Subject<Pick<Post, 'body' | 'title'>>()
-  addedPost$ = this.addingPost$.pipe(
+  addedPost$: Observable<Post> = this.addingPost$.pipe(
     filter(post => !!(post.title && post.body)),
     debounceTime(500),
     tap(() => this.loading$.next(true)),
     switchMap(post => api.createPost(post)),
-    catchError(() => of(null)),
     tap(() => this.loading$.next(false)),
     startWith(null),
   )
 
   deletingPostId$ = new Subject<string>()
-  deletedPostId$ = this.deletingPostId$.pipe(
+  deletedPostId$: Observable<string> = this.deletingPostId$.pipe(
     tap(() => this.loading$.next(true)),
     switchMap(id => api.deletePost(id)),
-    catchError(() => of(null)),
     tap(() => this.loading$.next(false)),
     startWith(null),
   )
