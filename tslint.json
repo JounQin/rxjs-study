@@ -1,23 +1,22 @@
 {
   "extends": [
     "tslint:recommended",
+    "tslint-config-standard",
     "tslint-config-prettier",
     "tslint-plugin-prettier"
   ],
   "rules": {
-    "import-blacklist": false,
     "interface-name": false,
     "member-access": false,
+    "object-literal-sort-keys": false,
     "ordered-imports": [
       true,
       {
+        "grouped-imports": true,
+        "import-sources-order": "lowercase-first",
         "named-imports-order": "lowercase-last"
       }
     ],
-    "prettier": true,
-    "object-literal-sort-keys": false
-  },
-  "linterOptions": {
-    "exclude": ["node_modules/**"]
+    "prettier": true
   }
 }

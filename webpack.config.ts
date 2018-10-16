@@ -3,33 +3,39 @@ import path from 'path'
 import ForkTsCheckerWebpackPlugin from 'fork-ts-checker-webpack-plugin'
 import HtmlWebpackPlugin from 'html-webpack-plugin'
 import MiniCssExtractPlugin from 'mini-css-extract-plugin'
-import tsImportPlugin from 'ts-import-plugin'
 import { Configuration } from 'webpack'
 
 const resolve = (...args: string[]) => path.resolve(process.cwd(), ...args)
 
 type Mode = Configuration['mode']
 
-const NODE_ENV = (process.env.NODE_ENV || 'development') as Mode
+const NODE_ENV = (process.env.NODE_ENV as Mode) || 'development'
 
-const isProd = NODE_ENV === 'production'
+const isDev = NODE_ENV === 'development'
 
-const hashType = isProd ? 'contenthash' : 'hash'
+const hashType = isDev ? 'hash' : 'contenthash'
+
+const sourceMap = isDev
 
 const cssLoaders = [
-  isProd ? MiniCssExtractPlugin.loader : 'style-loader',
+  isDev ? 'style-loader' : MiniCssExtractPlugin.loader,
   {
     loader: 'css-loader',
     options: {
-      minimize: isProd,
+      sourceMap,
     },
   },
-  'postcss-loader',
+  {
+    loader: 'postcss-loader',
+    options: {
+      sourceMap,
+    },
+  },
 ]
 
 const config: Configuration = {
   mode: NODE_ENV,
-  devtool: isProd ? false : 'cheap-module-source-map',
+  devtool: isDev ? 'cheap-module-source-map' : false,
   entry: {
     app: resolve('src/index.tsx'),
   },
@@ -50,10 +56,28 @@ const config: Configuration = {
         use: cssLoaders,
       },
       {
+        test: /\.less$/,
+        use: [
+          ...cssLoaders,
+          {
+            loader: 'less-loader',
+            options: {
+              javascriptEnabled: true,
+              sourceMap,
+            },
+          },
+        ],
+      },
+      {
         test: /\.scss$/,
         use: [
           ...cssLoaders,
-          'sass-loader',
+          {
+            loader: 'sass-loader',
+            options: {
+              sourceMap,
+            },
+          },
           {
             loader: 'style-resources-loader',
             options: {
@@ -68,23 +92,13 @@ const config: Configuration = {
       },
       {
         test: /\.tsx?$/,
-        loader: 'ts-loader',
-        options: {
-          transpileOnly: true,
-          getCustomTransformers: () => ({
-            before: [
-              tsImportPlugin({
-                style: 'css',
-              }),
-            ],
-          }),
-        },
+        loader: 'babel-loader',
       },
     ],
   },
   plugins: [
     new ForkTsCheckerWebpackPlugin({
-      tslint: true,
+      workers: ForkTsCheckerWebpackPlugin.TWO_CPUS_FREE,
     }),
     new HtmlWebpackPlugin({
       template: 'src/index.html',
@@ -98,12 +112,11 @@ const config: Configuration = {
       name: 'manifest',
     },
     splitChunks: {
-      name: 'vendors',
-      chunks: 'initial',
       cacheGroups: {
         vendors: {
-          test: ({ context, request }) =>
-            /node_modules/.test(context) && !/.css$/.test(request),
+          chunks: 'initial',
+          name: 'vendors',
+          test: /node_modules/,
         },
       },
     },

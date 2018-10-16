@@ -10,10 +10,11 @@
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "paths": {
-      "*": ["src/*", "node_modules/*"]
+      "*": ["src/*"]
     },
     "resolveJsonModule": true,
     "sourceMap": true,
+    "strictNullChecks": true,
     "suppressImplicitAnyIndexErrors": true
   },
   "exclude": ["node_modules"]

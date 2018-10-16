@@ -1,5 +1,6 @@
 import { Button, Input, List, Modal } from 'antd'
 import React, { ChangeEvent, Ref } from 'react'
+import { hot } from 'react-hot-loader'
 import {
   BehaviorSubject,
   Observable,
@@ -20,13 +21,13 @@ import api, { Post } from 'api'
 import { Subscribe } from 'components'
 import { buildBem } from 'utils'
 
-import { CreatePostModal } from './CreatePostModal'
-
 import 'styles/app'
+
+import { CreatePostModal } from './CreatePostModal'
 
 const bem = buildBem('app')
 
-export default class App extends React.PureComponent {
+class App extends React.PureComponent {
   formRef: Ref<typeof CreatePostModal>
 
   search$ = new BehaviorSubject('')
@@ -34,7 +35,7 @@ export default class App extends React.PureComponent {
   loading$ = new BehaviorSubject(false)
 
   addingPost$ = new Subject<Pick<Post, 'body' | 'title'>>()
-  addedPost$: Observable<Post> = this.addingPost$.pipe(
+  addedPost$: Observable<Post | null> = this.addingPost$.pipe(
     filter(post => !!(post.title && post.body)),
     debounceTime(500),
     tap(() => {
@@ -47,7 +48,7 @@ export default class App extends React.PureComponent {
   )
 
   deletingPostId$ = new Subject<number>()
-  deletedPostId$: Observable<number> = this.deletingPostId$.pipe(
+  deletedPostId$: Observable<number | null> = this.deletingPostId$.pipe(
     tap(() => this.loading$.next(true)),
     switchMap(id => api.deletePost(id)),
     tap(() => this.loading$.next(false)),
@@ -142,3 +143,5 @@ export default class App extends React.PureComponent {
     )
   }
 }
+
+export default hot(module)(App)
