@@ -78,6 +78,28 @@ class App extends React.PureComponent {
     map(([posts]) => posts),
   )
 
+  list$ = combineLatest(this.posts$, this.search$, this.loading$).pipe(
+    map(([posts, search, loading]) => {
+      posts = search ? posts.filter(post => post.title.includes(search)) : posts
+      return (
+        <List
+          className={bem.element('list')}
+          bordered
+          dataSource={posts}
+          loading={loading}
+          rowKey="id"
+          renderItem={(post: Post) => (
+            <List.Item
+              actions={[<a onClick={() => this.deletePost(post.id)}>delete</a>]}
+            >
+              <List.Item.Meta title={post.title} description={post.body} />
+            </List.Item>
+          )}
+        />
+      )
+    }),
+  )
+
   onChange = (e: ChangeEvent<HTMLInputElement>) =>
     this.search$.next(e.target.value.trim())
 
@@ -104,36 +126,7 @@ class App extends React.PureComponent {
             <Button onClick={this.createPost}>Add Post</Button>
           </div>
         </div>
-        <Subscribe>
-          {combineLatest(this.posts$, this.search$, this.loading$).pipe(
-            map(([posts, search, loading]) => {
-              posts = search
-                ? posts.filter(post => post.title.includes(search))
-                : posts
-              return (
-                <List
-                  className={bem.element('list')}
-                  bordered
-                  dataSource={posts}
-                  loading={loading}
-                  rowKey="id"
-                  renderItem={(post: Post) => (
-                    <List.Item
-                      actions={[
-                        <a onClick={() => this.deletePost(post.id)}>delete</a>,
-                      ]}
-                    >
-                      <List.Item.Meta
-                        title={post.title}
-                        description={post.body}
-                      />
-                    </List.Item>
-                  )}
-                />
-              )
-            }),
-          )}
-        </Subscribe>
+        <Subscribe>{this.list$}</Subscribe>
         <CreatePostModal
           wrappedComponentRef={this.saveFormRef}
           addingPost$={this.addingPost$}
