@@ -840,12 +840,11 @@
   resolved "https://registry.yarnpkg.com/@types/qs/-/qs-6.5.1.tgz#a38f69c62528d56ba7bd1f91335a8004988d72f7"
   integrity sha512-mNhVdZHdtKHMMxbqzNK3RzkBcN1cux3AvuCYGTvjEIQT2uheH3eCAyYsbMbh2Bq8nXkeOWs1kyDiF7geWRFQ4Q==
 
-"@types/react-dom@^16.0.9":
-  version "16.0.9"
-  resolved "https://registry.yarnpkg.com/@types/react-dom/-/react-dom-16.0.9.tgz#73ceb7abe6703822eab6600e65c5c52efd07fb91"
-  integrity sha512-4Z0bW+75zeQgsEg7RaNuS1k9MKhci7oQqZXxrV5KUGIyXZHHAAL3KA4rjhdH8o6foZ5xsRMSqkoM5A3yRVPR5w==
+"@types/react-dom@^16.8.4":
+  version "16.8.4"
+  resolved "https://registry.yarnpkg.com/@types/react-dom/-/react-dom-16.8.4.tgz#7fb7ba368857c7aa0f4e4511c4710ca2c5a12a88"
+  integrity sha512-eIRpEW73DCzPIMaNBDP5pPIpK1KXyZwNgfxiVagb5iGiz6da+9A5hslSX6GAQKdO7SayVCS/Fr2kjqprgAvkfA==
   dependencies:
-    "@types/node" "*"
     "@types/react" "*"
 
 "@types/react-modal@^3.2.1":
