@@ -84,7 +84,7 @@
     "@types/react-modal": "^3.2.1",
     "@types/webpack": "^4.4.17",
     "@types/webpack-env": "^1.13.6",
-    "autoprefixer": "^9.2.1",
+    "autoprefixer": "^9.6.1",
     "babel-loader": "^8.0.4",
     "babel-plugin-import": "^1.9.1",
     "css-loader": "^1.0.0",
