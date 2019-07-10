@@ -61,7 +61,7 @@
   },
   "dependencies": {
     "antd": "^3.10.1",
-    "lodash-es": "^4.17.11",
+    "lodash-es": "^4.17.14",
     "qs": "^6.5.2",
     "react": "^16.5.2",
     "react-dom": "^16.5.2",
